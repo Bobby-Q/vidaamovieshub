@@ -17,13 +17,23 @@ function readCatalog() {
 function readProviders() {
   const selectedPath = fs.existsSync(providerPath) ? providerPath : providerExamplePath;
   const config = JSON.parse(fs.readFileSync(selectedPath, 'utf8'));
+  applyProviderEnvironment(config);
   return sanitizeProviders(config, selectedPath === providerExamplePath);
+}
+
+function applyProviderEnvironment(config) {
+  config.metadata = config.metadata || {};
+  if (process.env.TMDB_API_KEY) config.metadata.tmdbApiKey = process.env.TMDB_API_KEY;
+  if (process.env.TMDB_READ_ACCESS_TOKEN) config.metadata.tmdbReadAccessToken = process.env.TMDB_READ_ACCESS_TOKEN;
 }
 
 function sanitizeProviders(config, usingExample) {
   return {
     usingExample,
-    metadata: { tmdbConfigured: Boolean(config.metadata && config.metadata.tmdbApiKey && !String(config.metadata.tmdbApiKey).includes('PUT_')) },
+    metadata: {
+      tmdbConfigured: Boolean(config.metadata && ((config.metadata.tmdbApiKey && !String(config.metadata.tmdbApiKey).includes('PUT_')) || config.metadata.tmdbReadAccessToken)),
+      tmdbReadTokenConfigured: Boolean(config.metadata && config.metadata.tmdbReadAccessToken)
+    },
     providers: (config.providers || []).map((provider) => ({
       id: provider.id,
       type: provider.type,
@@ -70,7 +80,7 @@ function sendFile(res, filePath) {
     }
     res.writeHead(200, {
       'content-type': types[ext] || 'application/octet-stream',
-      'cache-control': ext === '.html' ? 'no-store' : 'public, max-age=3600'
+      'cache-control': ext === '.html' || ext === '.css' || ext === '.js' ? 'no-store, no-cache, must-revalidate' : 'public, max-age=3600'
     });
     res.end(data);
   });
@@ -95,7 +105,7 @@ function handleApi(req, res, pathname) {
       appName: 'VIDAA MoviesHub',
       version: '0.1.0',
       capabilities: ['remote-navigation', 'html5-video', 'source-fallback'],
-      theme: { background: '#050507', accent: '#d9e7ff' }
+      theme: { background: '#0B0B0B', card: '#181818', accent: '#0A84FF' }
     });
   }
 
