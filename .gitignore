@@ -1,0 +1,6 @@
+# Local provider credentials and secrets
+data/providers.json
+
+# OS/editor
+.DS_Store
+Thumbs.db

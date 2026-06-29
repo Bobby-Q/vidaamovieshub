@@ -1,0 +1,52 @@
+{
+  "featured": ["demo-movie", "demo-live"],
+  "items": [
+    {
+      "id": "demo-movie",
+      "type": "movie",
+      "title": "Big Buck Bunny",
+      "year": 2008,
+      "runtimeMinutes": 10,
+      "genres": ["Animation", "Family"],
+      "overview": "A lightweight demo movie entry used to validate playback, details, focus navigation, and source fallback on VIDAA TVs.",
+      "poster": "/public/poster-demo.svg",
+      "backdrop": "/public/backdrop-demo.svg",
+      "sources": [
+        {
+          "id": "bbb-mp4",
+          "provider": "demo",
+          "url": "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4",
+          "format": "mp4",
+          "quality": "720p",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "id": "demo-live",
+      "type": "live",
+      "title": "Sample Live Channel",
+      "year": 2026,
+      "runtimeMinutes": null,
+      "genres": ["Live TV", "Demo"],
+      "overview": "A placeholder live TV channel entry for testing the live category layout and player handoff.",
+      "poster": "/public/poster-live.svg",
+      "backdrop": "/public/backdrop-live.svg",
+      "sources": [
+        {
+          "id": "sample-hls",
+          "provider": "demo",
+          "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+          "format": "hls",
+          "quality": "1080p",
+          "priority": 1
+        }
+      ]
+    }
+  ],
+  "rows": [
+    { "id": "continue", "title": "Continue Watching", "itemIds": ["demo-movie"] },
+    { "id": "movies", "title": "Movies", "itemIds": ["demo-movie"] },
+    { "id": "live", "title": "Live TV", "itemIds": ["demo-live"] }
+  ]
+}

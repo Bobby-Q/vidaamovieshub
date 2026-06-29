@@ -1,0 +1,33 @@
+{
+  "metadata": {
+    "tmdbApiKey": "PUT_TMDB_API_KEY_HERE"
+  },
+  "providers": [
+    {
+      "id": "home-xtream",
+      "type": "xtream",
+      "enabled": false,
+      "name": "Home Xtream Provider",
+      "serverUrl": "https://your-xtream-server.example.com",
+      "username": "PUT_XTREAM_USERNAME_HERE",
+      "password": "PUT_XTREAM_PASSWORD_HERE",
+      "priority": 1
+    },
+    {
+      "id": "manual-json",
+      "type": "local-json",
+      "enabled": true,
+      "name": "Local Demo Catalog",
+      "catalogPath": "data/catalog.json",
+      "priority": 2
+    },
+    {
+      "id": "m3u-playlist",
+      "type": "m3u",
+      "enabled": false,
+      "name": "Personal M3U Playlist",
+      "playlistUrl": "https://example.com/playlist.m3u",
+      "priority": 3
+    }
+  ]
+}
