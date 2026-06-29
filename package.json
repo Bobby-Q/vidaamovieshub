@@ -1,0 +1,14 @@
+{
+  "name": "vidaamovieshub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VIDAA-ready movies, shows, and live TV web app MVP.",
+  "scripts": {
+    "start": "node apps/server/src/server.js",
+    "dev": "node apps/server/src/server.js",
+    "check": "node --check apps/server/src/server.js && node --check apps/tv-client/src/app.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
