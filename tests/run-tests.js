@@ -58,6 +58,11 @@ async function run() {
     assert.strictEqual(config.appName, 'VIDAA MoviesHub');
     assert.ok(config.capabilities.includes('remote-navigation'));
 
+    const providers = await fetchJson('/api/providers');
+    assert.strictEqual(typeof providers.usingExample, 'boolean', 'provider status should report whether example config is used');
+    assert.ok(providers.providers.some((provider) => provider.type === 'xtream'), 'provider status should include xtream template');
+    assert.ok(providers.providers.every((provider) => provider.password === undefined), 'provider status must not expose passwords');
+
     const home = await fetchJson('/api/home');
     assert.ok(home.featured.length > 0, 'home.featured should not be empty');
     assert.ok(home.rows.length >= 3, 'home.rows should include MVP rows');

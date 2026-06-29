@@ -41,6 +41,7 @@ npm test
 
 ```text
 GET /api/config
+GET /api/providers
 GET /api/home
 GET /api/media/:id
 GET /api/playback/:id
@@ -51,4 +52,4 @@ GET /api/live/channels?category=name
 
 ## Next Steps
 
-See [`PLAN_OBJECTIVES.md`](./PLAN_OBJECTIVES.md) for the implementation roadmap and [`docs/testing.md`](./docs/testing.md) for the local test workflow.
+See [`PLAN_OBJECTIVES.md`](./PLAN_OBJECTIVES.md) for the implementation roadmap, [`docs/testing.md`](./docs/testing.md) for the local test workflow, [`docs/local-windows-testing.md`](./docs/local-windows-testing.md) for Windows laptop testing, [`docs/provider-setup.md`](./docs/provider-setup.md) for Xtream/M3U/manual input requirements, and [`docs/hosting-deployment.md`](./docs/hosting-deployment.md) for hosting prerequisites.

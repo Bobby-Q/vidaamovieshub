@@ -6,10 +6,40 @@ const url = require('url');
 const root = path.resolve(__dirname, '../../..');
 const clientRoot = path.join(root, 'apps/tv-client');
 const catalogPath = path.join(root, 'data/catalog.json');
+const providerPath = path.join(root, 'data/providers.json');
+const providerExamplePath = path.join(root, 'data/providers.example.json');
 const port = Number(process.env.PORT || 4173);
 
 function readCatalog() {
   return JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+}
+
+function readProviders() {
+  const selectedPath = fs.existsSync(providerPath) ? providerPath : providerExamplePath;
+  const config = JSON.parse(fs.readFileSync(selectedPath, 'utf8'));
+  return sanitizeProviders(config, selectedPath === providerExamplePath);
+}
+
+function sanitizeProviders(config, usingExample) {
+  return {
+    usingExample,
+    metadata: { tmdbConfigured: Boolean(config.metadata && config.metadata.tmdbApiKey && !String(config.metadata.tmdbApiKey).includes('PUT_')) },
+    providers: (config.providers || []).map((provider) => ({
+      id: provider.id,
+      type: provider.type,
+      enabled: Boolean(provider.enabled),
+      name: provider.name,
+      priority: provider.priority,
+      configured: isProviderConfigured(provider)
+    }))
+  };
+}
+
+function isProviderConfigured(provider) {
+  if (provider.type === 'xtream') return Boolean(provider.serverUrl && provider.username && provider.password && !String(provider.username).includes('PUT_'));
+  if (provider.type === 'm3u') return Boolean(provider.playlistUrl && !String(provider.playlistUrl).includes('example.com'));
+  if (provider.type === 'local-json') return Boolean(provider.catalogPath);
+  return false;
 }
 
 function sendJson(res, status, body) {
@@ -67,6 +97,10 @@ function handleApi(req, res, pathname) {
       capabilities: ['remote-navigation', 'html5-video', 'source-fallback'],
       theme: { background: '#050507', accent: '#d9e7ff' }
     });
+  }
+
+  if (pathname === '/api/providers') {
+    return sendJson(res, 200, readProviders());
   }
 
   if (pathname === '/api/home') {
