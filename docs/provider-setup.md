@@ -117,3 +117,22 @@ GET /api/providers
 ```
 
 It reports whether provider entries are configured without returning passwords or raw secrets.
+
+## TMDb metadata credentials
+
+For TMDb, the app only needs one of these:
+
+- `TMDB_READ_ACCESS_TOKEN` — preferred for the newer Bearer-token API flow.
+- `TMDB_API_KEY` — supported as a fallback for API-key based requests.
+
+Do not commit real TMDb credentials. Either create an ignored `data/providers.json` from `data/providers.example.json`, or start the server with environment variables:
+
+```bash
+TMDB_READ_ACCESS_TOKEN="your_tmdb_read_access_token" npm start
+```
+
+```bash
+TMDB_API_KEY="your_tmdb_api_key" npm start
+```
+
+The `/api/providers` endpoint reports whether TMDb is configured, but it never returns the raw token or key.
