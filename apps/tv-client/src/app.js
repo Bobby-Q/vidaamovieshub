@@ -35,7 +35,8 @@
     try { localStorage.setItem('__vidaamovieshub_test__', '1'); localStorage.removeItem('__vidaamovieshub_test__'); return true; } catch (error) { return false; }
   }
 
-  function progressKey(id) { return 'vidaamovieshub:progress:' + id; }
+  function storeKey(name) { return 'vidaamovieshub:' + name; }
+  function progressKey(id) { return storeKey('progress:' + id); }
   function saveProgress() {
     if (!state.capabilities.localStorage || !state.current || !state.player || !state.player.duration) return;
     localStorage.setItem(progressKey(state.current.id), JSON.stringify({ positionSeconds: Math.floor(state.player.currentTime), durationSeconds: Math.floor(state.player.duration) }));
@@ -43,6 +44,22 @@
   function readProgress(id) {
     if (!state.capabilities.localStorage) return null;
     try { return JSON.parse(localStorage.getItem(progressKey(id)) || 'null'); } catch (error) { return null; }
+  }
+
+  function getFavorites() {
+    if (!state.capabilities.localStorage) return [];
+    try { return JSON.parse(localStorage.getItem(storeKey('favorites')) || '[]'); } catch (error) { return []; }
+  }
+
+  function isFavorite(id) { return getFavorites().indexOf(id) !== -1; }
+
+  function toggleFavorite(id) {
+    if (!state.capabilities.localStorage) return;
+    var favorites = getFavorites();
+    var index = favorites.indexOf(id);
+    if (index === -1) favorites.push(id); else favorites.splice(index, 1);
+    localStorage.setItem(storeKey('favorites'), JSON.stringify(favorites));
+    renderDetails(id);
   }
 
   function renderTopbar(screen) {
@@ -69,6 +86,18 @@
     hero.innerHTML = '<h1>' + featured.title + '</h1><p>' + featured.overview + '</p><div><span class="button primary">Play / Details</span><span class="button">Source Ready</span></div>';
     screen.appendChild(hero);
 
+    var quick = el('section', 'row');
+    quick.appendChild(el('h2', '', 'Quick Actions'));
+    var quickRow = el('div', 'card-row');
+    [['search', 'Search'], ['live', 'Live TV'], ['favorites', 'Favorites'], ['settings', 'Settings']].forEach(function (item) {
+      var button = el('div', 'button', item[1]);
+      button.setAttribute('data-focusable', 'true');
+      button.dataset.action = item[0];
+      quickRow.appendChild(button);
+    });
+    quick.appendChild(quickRow);
+    screen.appendChild(quick);
+
     state.home.rows.forEach(function (row) {
       var section = el('section', 'row');
       section.appendChild(el('h2', '', row.title));
@@ -85,11 +114,6 @@
       screen.appendChild(section);
     });
 
-    var settings = el('div', 'button');
-    settings.textContent = 'Settings';
-    settings.setAttribute('data-focusable', 'true');
-    settings.dataset.action = 'settings';
-    screen.appendChild(settings);
     registerFocusables(screen, state.lastHomeFocus);
   }
 
@@ -107,6 +131,7 @@
       var saved = readProgress(state.current.id);
       var playLabel = saved && saved.positionSeconds > 15 ? 'Resume from ' + Math.floor(saved.positionSeconds / 60) + 'm' : 'Play';
       var play = el('div', 'button primary', playLabel); play.setAttribute('data-focusable', 'true'); play.dataset.action = 'play'; body.appendChild(play);
+      var favorite = el('div', 'button', isFavorite(state.current.id) ? 'Remove Favorite' : '+ Favorite'); favorite.setAttribute('data-focusable', 'true'); favorite.dataset.action = 'favorite'; body.appendChild(favorite);
       var back = el('div', 'button', 'Back'); back.setAttribute('data-focusable', 'true'); back.dataset.action = 'back'; body.appendChild(back);
       body.appendChild(el('h2', '', 'Sources'));
       state.sources.forEach(function (source) { var s = el('div', 'source-card', source.provider + ' • ' + source.format + ' • ' + source.quality); s.setAttribute('data-focusable', 'true'); s.dataset.action = 'play'; s.dataset.source = source.id; body.appendChild(s); });
@@ -160,6 +185,50 @@
     bar.style.width = pct + '%';
   }
 
+  function renderMediaList(title, fetcher) {
+    state.route = 'list';
+    var screen = setScreen('list-screen'); renderTopbar(screen);
+    screen.appendChild(el('h1', '', title));
+    var holder = el('div', 'card-row');
+    screen.appendChild(holder);
+    return fetcher().then(function (items) {
+      holder.innerHTML = '';
+      if (!items.length) holder.appendChild(el('p', 'overview', 'No items found.'));
+      items.forEach(function (item) {
+        var card = el('article', 'card');
+        card.setAttribute('data-focusable', 'true');
+        card.dataset.action = 'details';
+        card.dataset.id = item.id;
+        card.innerHTML = '<img class="poster" src="' + poster(item) + '" alt=""><div class="card-title">' + item.title + '</div>';
+        holder.appendChild(card);
+      });
+      var backButton = el('div', 'button', 'Back'); backButton.setAttribute('data-focusable', 'true'); backButton.dataset.action = 'back'; screen.appendChild(backButton);
+      registerFocusables(screen, 0);
+    }).catch(renderError);
+  }
+
+  function renderSearch() {
+    var query = window.prompt('Search movies, shows, or live TV', '') || '';
+    return renderMediaList('Search: ' + (query || 'All'), function () { return api('/api/search?q=' + encodeURIComponent(query)).then(function (data) { return data.results; }); });
+  }
+
+  function renderLive() {
+    return renderMediaList('Live TV', function () { return api('/api/live/channels').then(function (data) { return data.channels; }); });
+  }
+
+  function renderFavorites() {
+    var ids = getFavorites();
+    return renderMediaList('Favorites', function () {
+      if (!state.home) return api('/api/home').then(function (home) { state.home = home; return flattenHome(home).filter(function (item) { return ids.indexOf(item.id) !== -1; }); });
+      return Promise.resolve(flattenHome(state.home).filter(function (item) { return ids.indexOf(item.id) !== -1; }));
+    });
+  }
+
+  function flattenHome(home) {
+    var seen = {};
+    return home.rows.reduce(function (all, row) { return all.concat(row.items); }, home.featured.slice()).filter(function (item) { if (seen[item.id]) return false; seen[item.id] = true; return true; });
+  }
+
   function renderSettings() {
     state.route = 'settings';
     var screen = setScreen('settings-screen'); renderTopbar(screen);
@@ -169,7 +238,7 @@
   }
 
   function renderError(error) { var screen = setScreen(''); screen.appendChild(el('div', 'error', error.message || String(error))); }
-  function activate(node) { if (!node) return; var action = node.dataset.action; if (action === 'details') renderDetails(node.dataset.id); if (action === 'play') renderPlayer(node.dataset.source); if (action === 'settings') renderSettings(); if (action === 'back') renderHome(); }
+  function activate(node) { if (!node) return; var action = node.dataset.action; if (action === 'details') renderDetails(node.dataset.id); if (action === 'play') renderPlayer(node.dataset.source); if (action === 'favorite') toggleFavorite(state.current.id); if (action === 'search') renderSearch(); if (action === 'live') renderLive(); if (action === 'favorites') renderFavorites(); if (action === 'settings') renderSettings(); if (action === 'back') renderHome(); }
   function back() { if (state.route === 'home') return; if (state.route === 'player') { if (state.player) state.player.pause(); renderDetails(state.current.id); } else renderHome(); }
 
   document.addEventListener('keydown', function (event) {

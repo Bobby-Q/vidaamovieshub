@@ -20,13 +20,14 @@ The MVP proves the app can launch, navigate, open details, and play a source on 
 
 1. TV-ready home screen.
 2. Remote navigation and visible focus states.
-3. Details screen with metadata and source list.
-4. Player screen with HTML5 video playback.
-5. Basic source fallback structure.
-6. Local JSON demo catalog.
-7. Lightweight Node backend exposing config, home, media, and playback APIs.
-8. VIDAA-safe styling and hosted static assets.
-9. PWA manifest starter for `vidaa-edge` workflows.
+3. Details screen with metadata, favorite toggle, and source list.
+4. Search, Favorites, and Live TV list screens.
+5. Player screen with HTML5 video playback.
+6. Basic source fallback structure.
+7. Local JSON demo catalog.
+8. Lightweight Node backend exposing config, home, media, search, live, and playback APIs.
+9. VIDAA-safe styling and hosted static assets.
+10. PWA manifest starter for `vidaa-edge` workflows.
 
 ## Initial Execution Order
 
@@ -97,3 +98,4 @@ The MVP proves the app can launch, navigate, open details, and play a source on 
 - Player screen attempts playback from a configured source.
 - No screen requires mouse input.
 - App uses conservative browser features suitable for VIDAA testing.
+- Search, Live TV, and Favorites entry points are available from Home.

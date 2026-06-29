@@ -30,6 +30,9 @@ npm test
 - Basic settings screen.
 - Local JSON catalog.
 - Backend API for config, home, media details, and playback sources.
+- Search screen backed by `/api/search`.
+- Live TV screen backed by `/api/live/channels`.
+- Local favorites toggle and Favorites screen.
 - Playback resume tracking and next-source fallback controls.
 - Capability display for VIDAA/browser testing.
 - PWA manifest starter for VIDAA/`vidaa-edge` workflows.
@@ -41,6 +44,9 @@ GET /api/config
 GET /api/home
 GET /api/media/:id
 GET /api/playback/:id
+GET /api/search?q=term
+GET /api/live/categories
+GET /api/live/channels?category=name
 ```
 
 ## Next Steps

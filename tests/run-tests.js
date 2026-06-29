@@ -63,6 +63,15 @@ async function run() {
     assert.ok(home.rows.length >= 3, 'home.rows should include MVP rows');
     home.rows.forEach((row) => assert.ok(Array.isArray(row.items), `${row.id} row items should be an array`));
 
+    const search = await fetchJson('/api/search?q=bunny');
+    assert.ok(search.results.some((item) => item.id === 'demo-movie'), 'search should find demo movie');
+
+    const liveCategories = await fetchJson('/api/live/categories');
+    assert.ok(liveCategories.categories.includes('Live TV'), 'live categories should include Live TV');
+
+    const liveChannels = await fetchJson('/api/live/channels');
+    assert.ok(liveChannels.channels.some((item) => item.type === 'live'), 'live channels should include live items');
+
     const media = await fetchJson('/api/media/demo-movie');
     assert.strictEqual(media.id, 'demo-movie');
     assert.strictEqual(media.sources, undefined, 'media details should not expose source URLs');

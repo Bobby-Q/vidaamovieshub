@@ -52,6 +52,10 @@ function mapItem(item) {
   return copy;
 }
 
+function getQuery(req) {
+  return url.parse(req.url || '/', true).query || {};
+}
+
 function handleApi(req, res, pathname) {
   const catalog = readCatalog();
   const itemsById = new Map(catalog.items.map((item) => [item.id, item]));
@@ -74,6 +78,30 @@ function handleApi(req, res, pathname) {
         items: row.itemIds.map((id) => mapItem(itemsById.get(id))).filter(Boolean)
       }))
     });
+  }
+
+  if (pathname === '/api/search') {
+    const query = String(getQuery(req).q || '').trim().toLowerCase();
+    const results = catalog.items
+      .filter((item) => !query || [item.title, item.type, item.year, ...(item.genres || [])].join(' ').toLowerCase().includes(query))
+      .map(mapItem);
+    return sendJson(res, 200, { query, results });
+  }
+
+  if (pathname === '/api/live/categories') {
+    const categories = Array.from(new Set(catalog.items
+      .filter((item) => item.type === 'live')
+      .flatMap((item) => item.genres || ['Live TV'])));
+    return sendJson(res, 200, { categories });
+  }
+
+  if (pathname === '/api/live/channels') {
+    const category = String(getQuery(req).category || '').trim().toLowerCase();
+    const channels = catalog.items
+      .filter((item) => item.type === 'live')
+      .filter((item) => !category || (item.genres || []).join(' ').toLowerCase().includes(category))
+      .map(mapItem);
+    return sendJson(res, 200, { category, channels });
   }
 
   const mediaMatch = pathname.match(/^\/api\/media\/([^/]+)$/);
