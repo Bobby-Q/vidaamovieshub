@@ -21,6 +21,8 @@ npm run check
 npm test
 ```
 
+On Windows PowerShell, if `npm.ps1` is blocked by execution policy, use `npm.cmd run check` and `npm.cmd test`, or see [`docs/local-windows-testing.md`](./docs/local-windows-testing.md).
+
 ## Current MVP
 
 - Home screen with demo rows.

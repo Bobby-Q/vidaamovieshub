@@ -84,3 +84,49 @@ http://192.168.1.25:4173
 - Player opens from Play.
 - Back returns to Details/Home.
 - Settings shows resolution, HLS, MediaSource, and local storage capability.
+
+## Troubleshooting: `npm.ps1 cannot be loaded because running scripts is disabled`
+
+If PowerShell shows this error:
+
+```text
+npm : File C:\Program Files\nodejs\npm.ps1 cannot be loaded because running scripts is disabled on this system.
+```
+
+Use one of these fixes.
+
+### Fastest one-time fix
+
+Run npm through the Windows command shim instead of the PowerShell script:
+
+```powershell
+npm.cmd run check
+npm.cmd test
+npm.cmd start
+```
+
+### Permanent current-user fix
+
+Open PowerShell as your normal user and run:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+```
+
+Then confirm with `Y`, close PowerShell, reopen it, and run:
+
+```powershell
+npm run check
+npm test
+npm start
+```
+
+### No-policy-change alternative
+
+Use Command Prompt instead of PowerShell:
+
+```cmd
+npm run check
+npm test
+npm start
+```
