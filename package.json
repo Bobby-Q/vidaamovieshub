@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node apps/server/src/server.js",
     "dev": "node apps/server/src/server.js",
-    "check": "node --check apps/server/src/server.js && node --check apps/tv-client/src/app.js"
+    "check": "node --check apps/server/src/server.js && node --check apps/tv-client/src/app.js && node --check tests/run-tests.js",
+    "test": "node tests/run-tests.js"
   },
   "engines": {
     "node": ">=18"

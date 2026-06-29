@@ -18,6 +18,7 @@ http://localhost:4173
 
 ```bash
 npm run check
+npm test
 ```
 
 ## Current MVP
@@ -29,6 +30,8 @@ npm run check
 - Basic settings screen.
 - Local JSON catalog.
 - Backend API for config, home, media details, and playback sources.
+- Playback resume tracking and next-source fallback controls.
+- Capability display for VIDAA/browser testing.
 - PWA manifest starter for VIDAA/`vidaa-edge` workflows.
 
 ## API
@@ -42,4 +45,4 @@ GET /api/playback/:id
 
 ## Next Steps
 
-See [`PLAN_OBJECTIVES.md`](./PLAN_OBJECTIVES.md) for the implementation roadmap.
+See [`PLAN_OBJECTIVES.md`](./PLAN_OBJECTIVES.md) for the implementation roadmap and [`docs/testing.md`](./docs/testing.md) for the local test workflow.
