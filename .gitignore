@@ -1,5 +1,7 @@
 # Local provider credentials and secrets
 data/providers.json
+data/users.json
+data/history.json
 
 # OS/editor
 .DS_Store
