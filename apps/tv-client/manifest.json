@@ -1,1 +1,20 @@
-{"name":"VIDAA MoviesHub","short_name":"MoviesHub","start_url":"/","display":"fullscreen","background_color":"#050507","theme_color":"#050507","icons":[{"src":"/public/poster-demo.svg","sizes":"512x512","type":"image/svg+xml"}]}
+{
+  "name": "Aether Stream",
+  "short_name": "Aether",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    {
+      "src": "/public/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/public/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

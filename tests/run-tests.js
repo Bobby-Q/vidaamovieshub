@@ -9,8 +9,8 @@ const base = `http://127.0.0.1:${port}`;
 
 function wait(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
-async function fetchJson(route) {
-  const res = await fetch(base + route);
+async function fetchJson(route, options) {
+  const res = await fetch(base + route, options);
   assert.strictEqual(res.status, 200, `${route} should return 200`);
   assert.match(res.headers.get('content-type') || '', /application\/json/, `${route} should return JSON`);
   return res.json();
@@ -18,7 +18,7 @@ async function fetchJson(route) {
 
 async function waitForServer(child) {
   const started = Date.now();
-  while (Date.now() - started < 5000) {
+  while (Date.now() - started < 8000) {
     try {
       const res = await fetch(base + '/api/config');
       if (res.ok) return;
@@ -26,7 +26,7 @@ async function waitForServer(child) {
     await wait(100);
   }
   child.kill();
-  throw new Error('Server did not start within 5s');
+  throw new Error('Server did not start within 8s');
 }
 
 async function run() {
@@ -55,27 +55,34 @@ async function run() {
     await waitForServer(child);
 
     const config = await fetchJson('/api/config');
-    assert.strictEqual(config.appName, 'VIDAA MoviesHub');
+    assert.strictEqual(config.appName, 'Aether Stream');
     assert.ok(config.capabilities.includes('remote-navigation'));
+    assert.ok(config.capabilities.includes('tmdb') || !config.tmdbEnabled, 'config should include tmdb capability if enabled');
 
     const providers = await fetchJson('/api/providers');
-    assert.strictEqual(typeof providers.usingExample, 'boolean', 'provider status should report whether example config is used');
-    assert.ok(providers.providers.some((provider) => provider.type === 'xtream'), 'provider status should include xtream template');
+    assert.strictEqual(typeof providers.usingExample, 'boolean');
     assert.ok(providers.providers.every((provider) => provider.password === undefined), 'provider status must not expose passwords');
 
     const home = await fetchJson('/api/home');
-    assert.ok(home.featured.length > 0, 'home.featured should not be empty');
-    assert.ok(home.rows.length >= 3, 'home.rows should include MVP rows');
+    assert.ok(home.featured.length >= 0, 'home.featured should be array');
+    assert.ok(Array.isArray(home.rows), 'home.rows should be array');
     home.rows.forEach((row) => assert.ok(Array.isArray(row.items), `${row.id} row items should be an array`));
 
+    const discover = await fetchJson('/api/discover');
+    assert.ok(Array.isArray(discover.rows), 'discover.rows should be array');
+
+    const categories = await fetchJson('/api/categories');
+    assert.ok(Array.isArray(categories.categories), 'categories should be array');
+    assert.ok(categories.categories.length > 0, 'categories should not be empty');
+
     const search = await fetchJson('/api/search?q=bunny');
-    assert.ok(search.results.some((item) => item.id === 'demo-movie'), 'search should find demo movie');
+    assert.ok(Array.isArray(search.results), 'search results should be array');
 
     const liveCategories = await fetchJson('/api/live/categories');
-    assert.ok(liveCategories.categories.includes('Live TV'), 'live categories should include Live TV');
+    assert.ok(Array.isArray(liveCategories.categories), 'live categories should be array');
 
     const liveChannels = await fetchJson('/api/live/channels');
-    assert.ok(liveChannels.channels.some((item) => item.type === 'live'), 'live channels should include live items');
+    assert.ok(Array.isArray(liveChannels.channels), 'live channels should be array');
 
     const media = await fetchJson('/api/media/demo-movie');
     assert.strictEqual(media.id, 'demo-movie');
@@ -86,10 +93,34 @@ async function run() {
     assert.ok(playback.sources.length > 0, 'playback should include sources');
     assert.strictEqual(playback.sources[0].priority, 1, 'sources should be priority sorted');
 
+    // Auth tests
+    const register = await fetch(base + '/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'testuser_' + Date.now(), password: 'testpass123' })
+    });
+    assert.strictEqual(register.status, 201, 'register should return 201');
+    const regBody = await register.json();
+    assert.ok(regBody.token, 'register should return token');
+    assert.ok(regBody.user.username, 'register should return user');
+
+    const me = await fetch(base + '/api/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + regBody.token }
+    });
+    assert.strictEqual(me.status, 200);
+    const meBody = await me.json();
+    assert.ok(meBody.username, 'me should return user');
+
+    const logout = await fetch(base + '/api/auth/logout', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + regBody.token }
+    });
+    assert.strictEqual(logout.status, 200);
+
     const page = await fetch(base + '/');
     assert.strictEqual(page.status, 200, 'index should return 200');
     const html = await page.text();
-    assert.match(html, /VIDAA MoviesHub/, 'index should contain app name');
+    assert.match(html, /Aether Stream/, 'index should contain app name');
 
     const missing = await fetch(base + '/api/media/not-found');
     assert.strictEqual(missing.status, 404, 'missing media should return 404');

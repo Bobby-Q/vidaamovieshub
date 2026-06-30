@@ -1,8 +1,8 @@
 {
-  "name": "vidaamovieshub",
-  "version": "0.1.0",
+  "name": "aether-stream",
+  "version": "1.0.0",
   "private": true,
-  "description": "VIDAA-ready movies, shows, and live TV web app MVP.",
+  "description": "Aether Stream — movies, shows, and live TV web app with TMDb and IPTV integration.",
   "scripts": {
     "start": "node apps/server/src/server.js",
     "dev": "node apps/server/src/server.js",
