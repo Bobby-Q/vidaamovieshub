@@ -401,7 +401,7 @@ async function handleApi(req, res, pathname) {
   }
 
   if (pathname === '/api/config') {
-    return sendJson(res, 200, { appName: 'Aether Stream', version: '1.0.0', capabilities: ['remote-navigation', 'html5-video', 'source-fallback', 'tmdb', 'm3u', 'xtream', 'auth'], theme: { background: '#0a0a0a', accent: '#3b82f6' }, tmdbEnabled: !!tmdbApiKey });
+    return sendJson(res, 200, { appName: 'Aether Stream', version: '1.0.0', capabilities: ['remote-navigation', 'html5-video', 'source-fallback', 'tmdb', 'm3u', 'xtream', 'auth'], theme: { background: '#0A0F18', accent: '#fff' }, tmdbEnabled: !!tmdbApiKey });
   }
 
   if (pathname === '/api/providers') return sendJson(res, 200, readProviders());
@@ -610,6 +610,49 @@ async function handleApi(req, res, pathname) {
     try {
       const data = await tmdbRequest('/3/' + (type === 'movie' ? 'movie' : 'tv') + '/' + tmdbId + '/similar', tmdbApiKey);
       return sendJson(res, 200, { results: (data.results || []).map((item) => normalizeTmdbItem(item, type === 'movie' ? 'movie' : 'tv')) });
+    } catch (e) { return sendJson(res, 500, { error: 'TMDb error' }); }
+  }
+
+  const ratingMatch = pathname.match(/^\/api\/media\/([^/]+)\/rating$/);
+  if (ratingMatch && tmdbApiKey) {
+    const mediaId = decodeURIComponent(ratingMatch[1]);
+    if (!mediaId.startsWith('tmdb-')) return sendJson(res, 200, { rating: null });
+    const parts = mediaId.split('-');
+    const tmdbId = parseInt(parts[2], 10);
+    const type = parts[1];
+    if (!tmdbId) return sendJson(res, 404, { error: 'Invalid ID' });
+    try {
+      let cert = null;
+      if (type === 'movie') {
+        const data = await tmdbRequest('/3/movie/' + tmdbId + '/release_dates', tmdbApiKey);
+        const us = (data.results || []).find((r) => r.iso_3166_1 === 'US');
+        if (us && us.release_dates && us.release_dates.length) {
+          cert = us.release_dates[0].certification;
+        }
+      } else {
+        const data = await tmdbRequest('/3/tv/' + tmdbId + '/content_ratings', tmdbApiKey);
+        const us = (data.results || []).find((r) => r.iso_3166_1 === 'US');
+        if (us) cert = us.rating;
+      }
+      return sendJson(res, 200, { rating: cert || 'Unrated' });
+    } catch (e) { return sendJson(res, 500, { error: 'TMDb error' }); }
+  }
+
+  const artworkMatch = pathname.match(/^\/api\/media\/([^/]+)\/artwork$/);
+  if (artworkMatch && tmdbApiKey) {
+    const mediaId = decodeURIComponent(artworkMatch[1]);
+    if (!mediaId.startsWith('tmdb-')) return sendJson(res, 200, { backdrops: [], posters: [], logos: [] });
+    const parts = mediaId.split('-');
+    const tmdbId = parseInt(parts[2], 10);
+    const type = parts[1];
+    if (!tmdbId) return sendJson(res, 404, { error: 'Invalid ID' });
+    try {
+      const data = await tmdbRequest('/3/' + (type === 'movie' ? 'movie' : 'tv') + '/' + tmdbId + '/images', tmdbApiKey);
+      return sendJson(res, 200, {
+        backdrops: (data.backdrops || []).slice(0, 8).map((img) => tmdbImageUrl(img.file_path, 'original')),
+        posters: (data.posters || []).slice(0, 8).map((img) => tmdbImageUrl(img.file_path, 'w500')),
+        logos: (data.logos || []).slice(0, 8).map((img) => tmdbImageUrl(img.file_path, 'w500'))
+      });
     } catch (e) { return sendJson(res, 500, { error: 'TMDb error' }); }
   }
 
